@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NETWORK PROTOCOL VISUALIZER // TTY:8000</title>
+  <meta name="description"
+    content="Dual-panel retro terminal dashboard visualizing DNS, HTTP, and SMTP protocols in real time." />
+  <link rel="stylesheet" href="/static/css/styles.css?v=2" />
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='24' font-size='24'>📟</text></svg>" />
+</head>
+
+<body>
+  <div id="app">
+
+    <!-- ── Top Navigation Bar ── -->
+    <nav id="topnav" aria-label="System navigation">
+      <div class="nav-logo">
+        <span class="nav-prompt">&gt;</span> PROTOCOL_VISUALIZER // TTY:8000
+      </div>
+      <div class="nav-spacer"></div>
+      <div class="nav-status">
+        <div class="nav-status-indicator"></div>
+        <span>SYSTEM: ONLINE</span>
+      </div>
+    </nav>
+
+    <!-- ── Two-Panel Layout ── -->
+    <main id="panels">
+
+      <!-- ════════════════════════════════════════
+         LEFT PANEL — Activity
+         ════════════════════════════════════════ -->
+      <section class="panel" id="activity-panel" aria-label="Activity panel">
+        <header class="panel-header">
+          <h1 class="panel-title">[01] ACTIVITY_PANEL</h1>
+          <span class="panel-tag">USER_INPUT</span>
+        </header>
+
+        <div class="panel-content">
+          <!-- Tab Bar -->
+          <div id="activity-tabs" role="tablist" aria-label="Activity selector">
+            <button class="tab-btn active" id="tab-browse" role="tab" aria-selected="true"
+              aria-controls="browse-section" onclick="window.app.switchTab('browse')">
+              [ 1: BROWSE ]
+            </button>
+            <button class="tab-btn" id="tab-mail" role="tab" aria-selected="false" aria-controls="mail-section"
+              onclick="window.app.switchTab('mail')">
+              [ 2: MAIL ]
+            </button>
+            <button class="tab-btn" id="tab-stream" role="tab" aria-selected="false" aria-controls="stream-section"
+              onclick="window.app.switchTab('stream')">
+              [ 3: STREAM ]
+            </button>
+          </div>
+
+          <!-- ── Browsing Section ── -->
+          <section id="browse-section" class="activity-section active" role="tabpanel" aria-labelledby="tab-browse">
+            <!-- URL Bar -->
+            <div class="url-bar-row">
+              <div class="url-chrome">
+                <span class="lock-icon" id="lock-icon" title="Connection security">[*]</span>
+                <input type="text" id="url-input" placeholder="https://example.com" value="https://example.com"
+                  autocomplete="off" spellcheck="false" aria-label="URL to browse" />
+              </div>
+              <button class="btn-primary" id="btn-visit" onclick="window.browseModule.visit()" aria-label="Visit URL">
+                [ VISIT ]
+              </button>
+            </div>
+
+            <!-- Status Bar -->
+            <div class="browse-status-bar" id="browse-status-bar" aria-live="polite">
+              <div class="status-dot" id="browse-status-dot"></div>
+              <span id="browse-status-text">Enter URL and execute [VISIT]</span>
+            </div>
+
+            <!-- Iframe -->
+            <iframe id="browse-iframe" src="about:blank"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups" title="Browsed page content"></iframe>
+          </section>
+
+          <!-- ── Mail Section ── -->
+          <section id="mail-section" class="activity-section" role="tabpanel" aria-labelledby="tab-mail">
+            <!-- Compose Card -->
+            <div class="mail-compose">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                <h3>&gt; COMPOSE_EMAIL</h3>
+                <span id="mail-mode-indicator" style="display:none;font-size:10px;font-weight:600;padding:3px 8px;border:1px solid;border-radius:4px;letter-spacing:0.5px;"></span>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label" for="mail-to">TO:</label>
+                <input class="field-input" type="email" id="mail-to" placeholder="recipient@example.com"
+                  aria-label="Recipient email address" />
+              </div>
+
+              <div class="field-group">
+                <label class="field-label" for="mail-subject">SUBJECT:</label>
+                <input class="field-input" type="text" id="mail-subject" placeholder="Subject line"
+                  value="Test from Protocol Visualizer" aria-label="Email subject" />
+              </div>
+
+              <div class="field-group">
+                <label class="field-label" for="mail-body">BODY:</label>
+                <textarea class="field-input" id="mail-body" placeholder="Message content..."
+                  aria-label="Email body">Hello! This email is transmitted via SMTP Protocol Visualizer.</textarea>
+              </div>
+
+              <!-- Simulate toggle row -->
+              <div class="mail-simulate-row">
+                <label class="simulate-toggle" for="mail-simulate">
+                  <input type="checkbox" id="mail-simulate" checked />
+                  <span class="simulate-label-text">
+                    <span class="sim-icon">⚙</span>
+                    Simulate SMTP
+                    <span class="sim-desc">— shows full protocol, no real email sent</span>
+                  </span>
+                </label>
+                <span class="sim-tip">Uncheck to send a real email (requires .env credentials)</span>
+              </div>
+
+              <div class="mail-actions">
+                <button class="btn-send" id="btn-send" onclick="window.mailModule.send()" aria-label="Send email">
+                  [ SEND_MAIL ]
+                </button>
+                <span id="mail-send-status" aria-live="polite"
+                  style="font-size:11px;"></span>
+              </div>
+            </div>
+
+            <!-- Activity Log -->
+            <div class="mail-log">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                <h4>&gt; SMTP_EVENT_LOG</h4>
+                <span style="font-size:10px;color:var(--text-muted);">DNS → TCP → TLS → SMTP</span>
+              </div>
+              <div id="mail-log-content" aria-live="polite" style="color:var(--text-muted);">Ready for SMTP command dispatch...</div>
+            </div>
+          </section>
+
+
+          <!-- ── Streaming Section ── -->
+          <section id="stream-section" class="activity-section" role="tabpanel" aria-labelledby="tab-stream">
+            <!-- URL Row -->
+            <div class="stream-url-row">
+              <input type="text" id="stream-url-input" placeholder="https://example.com/video.mp4"
+                aria-label="Video URL"
+                value="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" />
+              <button class="btn-primary" id="btn-stream-load" onclick="window.streamModule.loadStream()"
+                aria-label="Load stream">
+                [ LOAD ]
+              </button>
+            </div>
+
+            <!-- Stream Controls -->
+            <div class="stream-controls-bar">
+              <button class="btn-primary" id="btn-stream-play" onclick="window.streamModule.togglePlay()"
+                aria-label="Play or pause video" disabled style="padding:4px 12px;">
+                [ PLAY ]
+              </button>
+              <span class="stream-label">QUALITY:</span>
+              <select class="quality-select" id="quality-select" aria-label="Video quality selector"
+                onchange="window.streamModule.changeQuality(this.value)">
+                <option value="1080p">1080p</option>
+                <option value="720p" selected>720p</option>
+                <option value="480p">480p</option>
+                <option value="360p">360p</option>
+              </select>
+              <span id="stream-status-label"
+                style="font-size:11px;color:var(--term-green-dim);margin-left:auto;"></span>
+            </div>
+
+            <!-- Video Viewport -->
+            <div class="video-wrapper">
+              <div class="video-placeholder" id="video-placeholder">
+                <span class="play-icon" aria-hidden="true">[▶]</span>
+                <p>&gt; Enter media URL and click [LOAD] to initialize stream and capture protocol steps.</p>
+              </div>
+              <video id="stream-video" controls preload="none" style="display:none;" aria-label="Video player"></video>
+            </div>
+          </section>
+
+        </div><!-- /panel-content -->
+      </section><!-- /activity-panel -->
+
+      <!-- ════════════════════════════════════════
+         RIGHT PANEL — Protocol Visualizer
+         ════════════════════════════════════════ -->
+      <section class="panel" id="protocol-panel" aria-label="Protocol visualization panel">
+        <header class="panel-header">
+          <h2 class="panel-title">[02] PROTOCOL_MONITOR</h2>
+          <span class="panel-tag">LIVE_SOCKET</span>
+        </header>
+
+        <div class="panel-content">
+          <!-- Layer Tabs -->
+          <div id="layer-tabs" role="tablist" aria-label="Layer selector">
+            <button class="tab-btn active" id="tab-layer-application" role="tab"
+              onclick="window.visualizer.switchLayer('application')">
+              [ APP_LAYER ]
+            </button>
+            <button class="tab-btn" id="tab-layer-transport" role="tab"
+              onclick="window.visualizer.switchLayer('transport')">
+              [ TRANSPORT_LAYER ]
+            </button>
+          </div>
+
+          <!-- Playback Controls -->
+          <div id="playback-bar" role="toolbar" aria-label="Protocol playback controls">
+            <button class="pb-btn" id="pb-first" onclick="window.visualizer.goFirst()" title="First step" disabled
+              aria-label="First step">|&lt;</button>
+            <button class="pb-btn" id="pb-prev" onclick="window.visualizer.stepBack()" title="Previous" disabled
+              aria-label="Previous step">&lt;&lt;</button>
+            <button class="pb-btn" id="pb-playpause" onclick="window.visualizer.togglePlay()" title="Play/Pause"
+              disabled aria-label="Play or pause">&gt;</button>
+            <button class="pb-btn" id="pb-next" onclick="window.visualizer.stepForward()" title="Next" disabled
+              aria-label="Next step">&gt;&gt;</button>
+            <button class="pb-btn" id="pb-last" onclick="window.visualizer.goLast()" title="Show all" disabled
+              aria-label="Last step">&gt;|</button>
+            <button class="pb-btn" id="pb-replay" onclick="window.visualizer.replay()" title="Replay" disabled
+              aria-label="Replay">[R]</button>
+
+            <div class="pb-progress">
+              <div class="pb-track" aria-hidden="true">
+                <div class="pb-fill" id="pb-fill" style="width:0%"></div>
+              </div>
+              <span class="pb-counter" id="pb-counter" aria-live="polite">0 / 0</span>
+            </div>
+
+            <select class="speed-select" id="speed-select" aria-label="Playback speed"
+              onchange="window.visualizer.setSpeed(this.value)">
+              <option value="2000">0.5x</option>
+              <option value="1000" selected>1.0x</option>
+              <option value="500">2.0x</option>
+              <option value="200">5.0x</option>
+            </select>
+          </div>
+
+          <!-- Steps Area -->
+          <div id="steps-container" role="log" aria-label="Protocol steps" aria-live="polite">
+            <!-- Empty state -->
+            <div id="visualizer-empty">
+              <div class="empty-icon" aria-hidden="true">[---]</div>
+              <p class="empty-title">&gt; PROTOCOL_LOG_EMPTY</p>
+              <p class="empty-subtitle">
+                Initiate an activity on the left panel.<br />
+                DNS, TCP, TLS, HTTP, and SMTP frames will be captured live.
+              </p>
+            </div>
+          </div>
+
+          <!-- Legend -->
+          <div id="legend-bar" aria-label="Direction legend">
+            <span style="color:var(--term-green-muted);">DIRECTION:</span>
+            <div class="legend-item">
+              <span style="color:var(--c2s);font-weight:bold;">[-&gt;]</span> Client-to-Server
+            </div>
+            <div class="legend-item">
+              <span style="color:var(--s2c);font-weight:bold;">[&lt;-]</span> Server-to-Client
+            </div>
+            <div class="legend-item">
+              <span style="color:var(--info);font-weight:bold;">[&lt;&gt;]</span> Info/Both
+            </div>
+          </div>
+        </div>
+      </section><!-- /protocol-panel -->
+
+    </main><!-- /panels -->
+
+  </div><!-- /app -->
+
+  <!-- ── Toast Container ── -->
+  <div id="toast-container" aria-live="assertive" aria-atomic="true"></div>
+
+  <!-- ── Scripts ── -->
+  <script src="/static/js/visualizer.js?v=2"></script>
+  <script src="/static/js/browse.js?v=2"></script>
+  <script src="/static/js/mail.js?v=2"></script>
+  <script src="/static/js/stream.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,955 @@
+/* ================================================================
+   Network Protocol Visualizer — Minimalist Dark Theme
+   Monochrome base, distinct protocol colors, clean typography
+   ================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ── Tokens ─────────────────────────────────────────────────── */
+:root {
+  /* Minimal Monochrome Palette */
+  --bg-base:       #000000;
+  --bg-panel:      #0a0a0a;
+  --bg-card:       #111111;
+  --bg-input:      #111111;
+  --bg-hover:      #1a1a1a;
+  
+  --border:        #262626;
+  --border-focus:  #525252;
+  
+  --text-primary:  #f5f5f5;
+  --text-secondary:#a3a3a3;
+  --text-muted:    #737373;
+
+  /* Protocol Phase Colors */
+  --dns-color:  #c084fc;  /* Purple */
+  --tcp-color:  #22d3ee;  /* Cyan */
+  --tls-color:  #fbbf24;  /* Amber */
+  --http-color: #4ade80;  /* Green */
+  --smtp-color: #60a5fa;  /* Blue */
+
+  /* Direction Colors for Responses/Requests */
+  --c2s-color: #3b82f6; /* Client Request (Blue) */
+  --s2c-color: #22c55e; /* Server Response (Green) */
+  --info-color:#eab308; /* Info/Handshake (Amber) */
+
+  --c2s-bg: rgba(59, 130, 246, 0.08);
+  --s2c-bg: rgba(34, 197, 94, 0.08);
+  --info-bg: rgba(234, 179, 8, 0.08);
+
+  /* JS compatibility aliases */
+  --green:          #4ade80;
+  --red:            #ef4444;
+  --cyan:           #22d3ee;
+  
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+}
+
+/* ── Reset & Base ───────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── App Shell ──────────────────────────────────────────────── */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* ── Top Navigation Bar ─────────────────────────────────────── */
+#topnav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 24px;
+  height: 48px;
+  background-color: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.nav-logo {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
+}
+
+.nav-spacer { flex: 1; }
+
+.nav-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.nav-status-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--text-secondary);
+}
+
+/* ── Main Two-Panel Layout ──────────────────────────────────── */
+#panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+  gap: 1px;
+  background-color: var(--border);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg-panel);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  height: 44px;
+  background-color: var(--bg-base);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.panel-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.panel-content {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Activity & Layer Tabs ──────────────────────────────────────────── */
+#activity-tabs, #layer-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 12px 20px 0;
+  background-color: var(--bg-base);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.tab-btn {
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: color 0.2s, border-color 0.2s;
+  position: relative;
+  top: 1px;
+}
+
+.tab-btn:hover {
+  color: var(--text-primary);
+}
+
+.tab-btn.active {
+  color: var(--text-primary);
+  border-bottom-color: var(--text-primary);
+}
+
+/* ── Activity Content Sections ──────────────────────────────── */
+.activity-section {
+  display: none;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 20px;
+  gap: 16px;
+}
+
+.activity-section.active {
+  display: flex;
+}
+
+/* ── Common Inputs & Buttons ────────────────────────────────── */
+input[type="text"],
+input[type="email"],
+textarea,
+select {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  padding: 8px 12px;
+  outline: none;
+  border-radius: 4px;
+  transition: border-color 0.2s;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--border-focus);
+}
+
+button.btn-primary,
+button.btn-send {
+  background: var(--text-primary);
+  border: 1px solid var(--text-primary);
+  color: var(--bg-base);
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+button.btn-primary:hover:not(:disabled),
+button.btn-send:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+button.btn-primary:disabled,
+button.btn-send:disabled {
+  background: var(--bg-hover);
+  border-color: var(--border);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+/* ── Browsing Section ───────────────────────────────────────── */
+.url-bar-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.url-chrome {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0 12px;
+}
+
+.url-chrome:focus-within {
+  border-color: var(--border-focus);
+}
+
+.lock-icon {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.url-chrome input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 8px 0;
+}
+
+.url-chrome input:focus {
+  border-color: transparent;
+}
+
+.browse-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--border);
+}
+.status-dot.success { background-color: var(--green); }
+.status-dot.loading { background-color: var(--info-color); }
+.status-dot.error   { background-color: var(--red); }
+
+#browse-iframe {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  max-height: calc(100% - 100px);
+  margin: auto;
+  border: 1px solid var(--border);
+  background-color: #ffffff;
+  border-radius: 4px;
+  display: block;
+}
+
+/* ── Mail Section ───────────────────────────────────────────── */
+.mail-compose {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 20px;
+}
+
+.mail-compose h3 {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.field-input {
+  width: 100%;
+}
+
+textarea.field-input {
+  height: 100px;
+  resize: vertical;
+}
+
+.mail-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.mail-log {
+  flex: 1 1 0;
+  min-height: 80px;
+  overflow-y: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 12px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+}
+
+.mail-log h4 {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  font-family: var(--font-sans);
+}
+
+#mail-log-content {
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* ── Streaming Section ──────────────────────────────────────── */
+.stream-url-row {
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.stream-url-row input {
+  flex: 1;
+}
+
+.stream-controls-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.stream-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.quality-select {
+  padding: 4px 8px;
+}
+
+.video-wrapper {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  max-height: calc(100% - 130px);
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #000;
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+#stream-video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.video-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 40px;
+}
+
+/* ── Protocol Visualizer Panel (Right Panel) ────────────────── */
+#protocol-panel .panel-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Playback bar */
+#playback-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background-color: var(--bg-base);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.pb-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.pb-btn:hover:not(:disabled) {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--border-focus);
+}
+
+.pb-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.pb-btn.active {
+  background: var(--text-primary);
+  color: var(--bg-base);
+  border-color: var(--text-primary);
+}
+
+.pb-progress {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pb-track {
+  flex: 1;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+}
+
+.pb-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background-color: var(--text-primary);
+  transition: width 0.15s ease;
+}
+
+.pb-counter {
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  min-width: 44px;
+  text-align: right;
+}
+
+.speed-select {
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+/* ── Scrollable Protocol Steps Container ────────────────────── */
+#steps-container {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: var(--bg-panel);
+}
+
+/* Minimalist scrollbar */
+#steps-container::-webkit-scrollbar,
+.mail-log::-webkit-scrollbar {
+  width: 6px;
+}
+#steps-container::-webkit-scrollbar-track,
+.mail-log::-webkit-scrollbar-track {
+  background: transparent;
+}
+#steps-container::-webkit-scrollbar-thumb,
+.mail-log::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+#steps-container::-webkit-scrollbar-thumb:hover,
+.mail-log::-webkit-scrollbar-thumb:hover {
+  background: var(--border-focus);
+}
+
+/* Empty State */
+#visualizer-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 40px;
+  text-align: center;
+  color: var(--text-muted);
+  gap: 12px;
+}
+
+.empty-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.empty-subtitle {
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* ── Step Card (Fixed Height / No Shrinking) ────────────────── */
+.step-card {
+  flex-shrink: 0;
+  min-height: fit-content;
+  width: 100%;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+  /* Reveal animation (starts hidden, becomes visible via .revealed) */
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.25s ease, transform 0.25s ease, border-color 0.2s ease;
+}
+
+.step-card.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.step-card:hover {
+  border-color: var(--border-focus);
+}
+
+.step-card.active-step {
+  border-color: var(--text-primary);
+}
+
+.step-card.error-step {
+  border-color: var(--red);
+}
+
+/* Differentiate Request (Client->Server) vs Response (Server->Client) */
+.step-card[data-direction="client→server"] {
+  border-left: 3px solid var(--c2s-color);
+  background-color: var(--c2s-bg);
+}
+.step-card[data-direction="server→client"] {
+  border-right: 3px solid var(--s2c-color);
+  background-color: var(--s2c-bg);
+}
+.step-card[data-direction="info"] {
+  border-left: 3px solid var(--info-color);
+  background-color: var(--info-bg);
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.step-header.align-right {
+  flex-direction: row-reverse;
+}
+
+.client-server-label {
+  font-size: 11px;
+  font-weight: bold;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+}
+.align-left .client-server-label { color: var(--c2s-color); }
+.align-right .client-server-label { color: var(--s2c-color); }
+
+/* Directional lines resembling demo image */
+.step-line {
+  position: relative;
+  height: 2px;
+  margin: 0 14px 10px 14px;
+  background: var(--info-color);
+  opacity: 0.7;
+}
+.step-line.align-left {
+  background: var(--c2s-color);
+}
+.step-line.align-right {
+  background: var(--s2c-color);
+}
+.step-line::after {
+  position: absolute;
+  top: -6px;
+  font-size: 12px;
+}
+.step-line.align-left::after {
+  content: "▶";
+  right: -2px;
+  color: var(--c2s-color);
+}
+.step-line.align-right::after {
+  content: "◀";
+  left: -2px;
+  color: var(--s2c-color);
+}
+
+.step-num {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-family: var(--font-mono);
+  min-width: 20px;
+}
+
+.step-arrow {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+/* Phase badges (Noticeable Colors) */
+.phase-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.phase-DNS  { color: var(--dns-color);  background: rgba(192, 132, 252, 0.15); }
+.phase-TCP  { color: var(--tcp-color);  background: rgba(34, 211, 238, 0.15); }
+.phase-UDP  { color: #f472b6; background: rgba(244, 114, 182, 0.15); }
+.phase-TLS  { color: var(--tls-color);  background: rgba(251, 191, 36, 0.15); }
+.phase-HTTP { color: var(--http-color); background: rgba(74, 222, 128, 0.15); }
+.phase-SMTP { color: var(--smtp-color); background: rgba(96, 165, 250, 0.15); }
+
+.step-label {
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.step-time {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+}
+
+.step-expand-icon {
+  font-size: 10px;
+  color: var(--text-secondary);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.step-card.expanded .step-expand-icon {
+  transform: rotate(180deg);
+}
+
+/* Step Detail Area (Raw logs in monospace) */
+.step-detail {
+  display: none;
+  padding: 12px 14px;
+  background-color: rgba(0,0,0,0.2);
+  border-top: 1px solid var(--border);
+  font-size: 11.5px;
+}
+
+.step-card.expanded .step-detail {
+  display: block;
+}
+
+.step-card[data-direction="server→client"] .step-detail {
+  text-align: right;
+}
+
+.step-detail pre {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.highlight-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.step-card[data-direction="server→client"] .highlight-fields {
+  justify-content: flex-end;
+}
+
+.highlight-pill {
+  display: flex;
+  gap: 6px;
+  font-size: 11px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
+.highlight-key {
+  color: var(--text-secondary);
+}
+
+.highlight-val {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+/* ── Legend Bar ─────────────────────────────────────────────── */
+#legend-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 20px;
+  background-color: var(--bg-base);
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* ── Toast Notifications ────────────────────────────────────── */
+#toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 10000;
+  pointer-events: none;
+}
+
+.toast {
+  padding: 12px 16px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toast.error {
+  border-left: 3px solid var(--red);
+}
+
+.toast.info {
+  border-left: 3px solid var(--cyan);
+}
+
+/* ── Loading Spinner ────────────────────────────────────────── */
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border);
+  border-top-color: var(--text-primary);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+
+/* ── QUIC Phase Badge ────────────────────────────────────────── */
+.phase-QUIC { color: #fb923c; background: rgba(251, 146, 60, 0.15); }
+.phase-UDP  { color: #f472b6; background: rgba(244, 114, 182, 0.15); }
+
+.mail-simulate-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  background: rgba(251, 191, 36, 0.05);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: 4px;
+}
+
+.simulate-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.simulate-toggle input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--tls-color);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.simulate-label-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--tls-color);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sim-icon {
+  font-size: 13px;
+}
+
+.sim-desc {
+  font-weight: 400;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.sim-tip {
+  font-size: 10px;
+  color: var(--text-muted);
+  padding-left: 22px;
+}
+
+/* ── QUIC Phase Badge ────────────────────────────────────────── */
+.phase-QUIC { color: #fb923c; background: rgba(251, 146, 60, 0.15); }
+.phase-UDP  { color: #f472b6; background: rgba(244, 114, 182, 0.15); }
+
